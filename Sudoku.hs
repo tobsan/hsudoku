@@ -1,9 +1,9 @@
 module Sudoku where
 
 {-
-	Copyright (c) Tobias Olausson, 2015
+    Copyright (c) Tobias Olausson, 2015
 
-	This file is part of hsudoku
+    This file is part of hsudoku
 
     hsudoku is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
