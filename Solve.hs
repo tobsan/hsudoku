@@ -1,9 +1,9 @@
 module Solve where
 
 {-
-	Copyright (c) Tobias Olausson, 2015
+    Copyright (c) Tobias Olausson, 2015
 
-	This file is part of hsudoku
+    This file is part of hsudoku
 
     hsudoku is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,8 +21,26 @@ module Solve where
 
 import Data.Maybe
 import Data.Char
+import System.Environment
 
 import Sudoku
+
+-- Main function
+main :: IO ()
+main = do
+    args <- getArgs
+    case args of
+        [file] -> do
+            sud <- readSudoku file
+            let sud' = solve sud
+            if isSolved sud' then putStrLn "Solved:"
+                             else putStrLn "Could not solve:"
+            putStr $ printBoard sud'
+        _      -> usage
+  where
+    usage = do
+        progName <- getProgName
+        putStrLn $ "Usage: " ++ progName ++ " <sudoku file>"
 
 -- Read a sudoku file from disk
 -- Expected format is 9 lines with 9 chars on each line
@@ -52,17 +70,17 @@ testBench = do
 solve :: Board -> Board
 solve board | board == board'' = board''
             | otherwise        = solve board''
-  where board' = solveNaked board (getCandidates board)
+  where board'  = solveSingleCandidate board (getCandidates board)
         board'' = solveSinglePosition board' (getCandidates board')
 
 -- Solves naked candidates (only one possible value)
-solveNaked :: Board -> [Candidate] -> Board
-solveNaked board []                       = board
-solveNaked board (((row,col),Nothing):cs) = solveNaked board cs
-solveNaked board (((row,col),Just c):cs)  = case c of
+solveSingleCandidate :: Board -> [Candidate] -> Board
+solveSingleCandidate board []                       = board
+solveSingleCandidate board (((row,col),Nothing):cs) = solveSingleCandidate board cs
+solveSingleCandidate board (((row,col),Just c):cs)  = case c of
     []  -> error $ "empty candidate list is impossible at " ++ show (row,col) 
-    [n] -> solveNaked (setCell board row col n) cs
-    ns  -> solveNaked board cs
+    [n] -> solveSingleCandidate (setCell board row col n) cs
+    ns  -> solveSingleCandidate board cs
 
 -- Solves single positions (only one cell where a value is possible)
 solveSinglePosition :: Board -> [Candidate] -> Board
@@ -86,6 +104,12 @@ solveSinglePosition board cs =
                        in setCell board y x c
                 _   -> board
         in checkSingle' board' cs (i-1)
+
+solveNakedPair :: Board -> [Candidate] -> Board
+solveNakedPair board cs = undefined
+  where
+    row y = filter ((== y) . fst . fst) cs
+    col x = filter ((== x) . snd . fst) cs
 
 -- Solve by trial and error
 solveTrialError :: Board -> [Candidate] -> Board

@@ -11,9 +11,15 @@ the same techniques humans do.
 
 How to run
 ----------
-You'll need a Haskell compiler and/or interpreter. I use GHC. There is
-currently no proper front end for running it, but it can be run by hand.
+You'll need a Haskell compiler and/or interpreter. 
 
+To run compiled:
+```
+$ ghc -O2 -o hsudoku
+$ ./hsudoku "test.sud"
+```
+
+To run interpreted:
 ```
 $ ghci Solve.hs
 *Solve> sud <- readSudoku "test.sud"
