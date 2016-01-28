@@ -140,3 +140,11 @@ getCandidate board rx cx
 onlyCandidates :: [Candidate] -> [Int]
 onlyCandidates = concat . catMaybes . map snd
 
+-- Useful for removing some candidates somewhere
+mapCandidatesGuard :: ((Int,Int) -> Bool) -> ([Int] -> [Int]) -> [Candidate] -> [Candidate]
+mapCandidatesGuard guard f ((coord,cands):cs) = (coord,cands') : mapCandidatesGuard guard f cs
+  where
+    cands' = if guard coord then fmap f cands else cands
+
+mapCandidates :: ([Int] -> [Int]) -> [Candidate] -> [Candidate]
+mapCandidates f cs = mapCandidatesGuard (const True) f cs

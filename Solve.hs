@@ -105,7 +105,9 @@ solveSinglePosition board cs =
                 _   -> board
         in checkSingle' board' cs (i-1)
 
-solveNakedPair :: Board -> [Candidate] -> Board
+-- Naked pairs can be used to remove other candidates. As such, it does not
+-- alter the board, but rather the list of candidates.
+solveNakedPair :: [Candidate] -> [Candidate]
 solveNakedPair board cs = undefined
   where
     row y = filter ((== y) . fst . fst) cs
