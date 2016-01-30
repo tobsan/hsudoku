@@ -40,11 +40,11 @@ solve board = case solveStep board of
 -- Solves naked candidates (only one possible value)
 solveSingleCandidate :: Board -> [Candidate] -> Board
 solveSingleCandidate board []                       = board
-solveSingleCandidate board (((row,col),Nothing):cs) = solveSingleCandidate board cs
+solveSingleCandidate board (((_,_),Nothing):cs) = solveSingleCandidate board cs
 solveSingleCandidate board (((row,col),Just c):cs)  = case c of
-    []  -> error $ "empty candidate list is impossible at " ++ show (row,col) 
+    []  -> errorEmptyCandidate row col
     [n] -> solveSingleCandidate (setCell board row col n) cs
-    ns  -> solveSingleCandidate board cs
+    _   -> solveSingleCandidate board cs
 
 -- Solves single positions (only one cell where a value is possible)
 solveSinglePosition :: Board -> [Candidate] -> Board
@@ -87,3 +87,8 @@ solveTrialError board cs = solve' board $ filter (isJust . snd) cs
   where
     solve' board (((y,x),cands):cs) = undefined
 
+-- Convenience function for whenever a candidate list is empty, which
+-- should be an impossible state
+errorEmptyCandidate :: Int -> Int -> a
+errorEmptyCandidate y x = error $ "empty candidate list is impossible at "
+                       ++ show (y,x)
