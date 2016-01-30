@@ -2,6 +2,7 @@ module Main where
 
 import System.Environment
 import Data.Char
+import Control.Monad
 
 import Solve
 import Sudoku
@@ -12,26 +13,25 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["-f", file] -> do
-            sud <- readSudoku file
-            let sud' = solve sud
-            if isSolved sud' then putStrLn "Solved:"
-                             else putStrLn "Could not solve:"
-            putStr $ printBoard sud'
-        ("-s":rows) -> do
-            let sud = map (map char2board) rows
-            putStr $ printBoard sud
-        _      -> usage
+        ["-f", file] -> readSudoku file >>= runSudoku
+        ("-s":rows)  -> runSudoku $ map (map char2board) rows
+        _            -> usage
   where
     usage = do
         progName <- getProgName
         putStrLn $ "Usage: " ++ progName ++ " <sudoku file>"
+    runSudoku sud = do
+        let sud' = solve sud
+        unless (isSolved sud') $ putStrLn "Could not solve:"
+        putStr $ printBoard sud'
 
 -- Read a sudoku file from disk
 -- Expected format is 9 lines with 9 chars on each line
 -- Empty spaces are denoted with periods (.).
+--
+-- Valid numbers are 0-8, for technical reasons.
 readSudoku :: FilePath -> IO Board
-readSudoku f = readFile f >>= return . map (map char2board) . lines
+readSudoku f = liftM (map (map char2board) . lines) $ readFile f
 
 char2board :: Char -> Maybe Int
 char2board c | c == '.'   = Nothing
