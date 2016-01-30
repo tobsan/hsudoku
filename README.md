@@ -8,20 +8,25 @@ Nowadays, I don't get to do any Haskell at work, so this is mostly just to
 make sure I won't forget anything, and a neat way to solve sudokus by using
 the same techniques humans do.
 
-
 How to run
 ----------
 You'll need a Haskell compiler and/or interpreter. 
 
 To run compiled:
 ```
-$ ghc -O2 -o hsudoku
-$ ./hsudoku "test.sud"
+$ make
+$ ./hsudoku -f "test.sud"
 ```
 
 To run interpreted:
 ```
-$ ghci Solve.hs
+$ ghci Main.hs
 *Solve> sud <- readSudoku "test.sud"
 *Solve> putStrLn $ printBoard $ solve sud
 ```
+
+Related projects
+----------------
+Check out sudoku_ocr, which can do OCR of sudoku images and output to a format
+readable by this solver (using -s on the command line)
+https://github.com/jonte/sudoku_ocr
