@@ -13,17 +13,25 @@ main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["-f", file] -> readSudoku file >>= runSudoku
-        ("-s":rows)  -> runSudoku $ map (map char2board) rows
-        _            -> usage
+        ("-f":file:args') -> readSudoku file >>= runSudoku args
+        ("-s":args')      ->
+            let rows = take 9 args'
+            in runSudoku (drop 9 args') $ map (map char2board) rows
+        _                 -> usage
   where
     usage = do
         progName <- getProgName
         putStrLn $ "Usage: " ++ progName ++ " <sudoku file>"
-    runSudoku sud = do
+    runSudoku args sud = do
         let sud' = solve sud
         unless (isSolved sud') $ putStrLn "Could not solve:"
-        putStr $ printBoard sud'
+        case args of
+            ["-o", outputType] -> case outputType of
+                "png"   -> undefined
+                "json"  -> undefined
+                "ascii" -> putStr $ printBoard sud'
+                _       -> putStr $ printBoard sud'
+            _                  -> putStr $ printBoard sud'
 
 -- Read a sudoku file from disk
 -- Expected format is 9 lines with 9 chars on each line
