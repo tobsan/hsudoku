@@ -27,6 +27,5 @@ $ ghci Main.hs
 
 Related projects
 ----------------
-Check out sudoku_ocr, which can do OCR of sudoku images and output to a format
-readable by this solver (using -s on the command line)
-https://github.com/jonte/sudoku_ocr
+Check out [sudoku_ocr](https://github.com/jonte/sudoku_ocr), which can do OCR
+of sudoku images and output to a format readable by this solver.
