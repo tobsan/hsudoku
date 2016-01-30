@@ -1,4 +1,4 @@
 TODO
 ----
 
-* Fill the TODO list
+* Write QuickCheck properties for all functions
