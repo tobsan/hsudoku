@@ -99,13 +99,17 @@ getBox board ix = concatMap (\row -> take 3 $ drop startCol row) rows
 -- Is this board a valid Sudoku?
 -- Each number may only appear once in every row, column and box
 -- And the sudoku is of right size
---
--- TODO: Check validity of generated candidate list
+-- And candidate lists for this board is never empty
 --
 isValid :: Board -> Bool
 isValid board 
+    -- Boards are supposed to be of length 9
     | length board /= 9          = False
+    -- And each row should have 9 columns
     | any ((/=9) . length) board = False
+    -- If candidate list is available for a cell, it cannot be empty
+    | any (maybe False null . snd) (getCandidates board) = False
+    -- Each number may only appear once in a row, col and box
     | otherwise = and $ map (\i -> f getRow i && f getCol i && f getBox i) [0..8]
   where
     f g i = let x = (catMaybes $ g board i)
@@ -142,6 +146,7 @@ onlyCandidates = concat . catMaybes . map snd
 
 -- Useful for removing some candidates somewhere
 mapCandidatesGuard :: ((Int,Int) -> Bool) -> ([Int] -> [Int]) -> [Candidate] -> [Candidate]
+mapCandidatesGuard _ _ [] = []
 mapCandidatesGuard guard f ((coord,cands):cs) = (coord,cands') : mapCandidatesGuard guard f cs
   where
     cands' = if guard coord then fmap f cands else cands
