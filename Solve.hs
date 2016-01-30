@@ -26,16 +26,20 @@ import System.Environment
 import Sudoku
 
 -- Main function
+-- usage: hsudoku -f <file.sud> | -s 81 tiles
 main :: IO ()
 main = do
     args <- getArgs
     case args of
-        [file] -> do
+        ["-f", file] -> do
             sud <- readSudoku file
             let sud' = solve sud
             if isSolved sud' then putStrLn "Solved:"
                              else putStrLn "Could not solve:"
             putStr $ printBoard sud'
+        ("-s":rows) -> do
+            let sud = map (map char2board) rows
+            putStr $ printBoard sud
         _      -> usage
   where
     usage = do
@@ -47,12 +51,12 @@ main = do
 -- Empty spaces are denoted with periods (.).
 readSudoku :: FilePath -> IO Board
 readSudoku f = readFile f >>= return . map (map char2board) . lines
-  where
-    char2board :: Char -> Maybe Int
-    char2board c | c == '.'   = Nothing
-                 | ord c < 49 = error "bad char value"
-                 | ord c > 57 = error "bad char value"
-                 | otherwise  = Just $ ord c - 49
+
+char2board :: Char -> Maybe Int
+char2board c | c == '.'   = Nothing
+             | ord c < 49 = error "bad char value"
+             | ord c > 57 = error "bad char value"
+             | otherwise  = Just $ ord c - 49
 
 -- Just run all the sudokus
 testBench :: IO ()
@@ -65,13 +69,20 @@ testBench = do
         hardPaths = [ "sudokus/hard" ++ (show i) ++ ".sud" | i <- [1..95]]
         passed = length . filter (==True)
 
-
--- Main solve function
-solve :: Board -> Board
-solve board | board == board'' = board''
-            | otherwise        = solve board''
-  where board'  = solveSingleCandidate board (getCandidates board)
+-- Solve one step of a sudoku
+solveStep :: Board -> Maybe Board
+solveStep board | board /= board'  = Just board'
+                | board /= board'' = Just board''
+                | otherwise        = Nothing
+  where board' = solveSingleCandidate board (getCandidates board)
         board'' = solveSinglePosition board' (getCandidates board')
+        -- Add more here. TODO: Better solution for this
+        -- TODO: Do this with some fold-ish thing?
+
+solve :: Board -> Board
+solve board = case solveStep board of
+    Nothing     -> board
+    Just board' -> solve board'
 
 -- Solves naked candidates (only one possible value)
 solveSingleCandidate :: Board -> [Candidate] -> Board
@@ -108,8 +119,9 @@ solveSinglePosition board cs =
 -- Naked pairs can be used to remove other candidates. As such, it does not
 -- alter the board, but rather the list of candidates.
 solveNakedPair :: [Candidate] -> [Candidate]
-solveNakedPair board cs = undefined
+solveNakedPair cs = undefined 
   where
+    allPairs = [ (y,x) | y <- [0..8], x <- [0..8]]
     row y = filter ((== y) . fst . fst) cs
     col x = filter ((== x) . snd . fst) cs
 
