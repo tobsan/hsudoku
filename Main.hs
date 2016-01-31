@@ -22,6 +22,8 @@ main = do
     usage = do
         progName <- getProgName
         putStrLn $ "Usage: " ++ progName ++ " <sudoku file>"
+        putStrLn $ "  -f Sudoku file"
+        putStrLn $ "  -s Sudoku string, see README for format"
     runSudoku args sud = do
         let sud' = solve sud
         unless (isSolved sud') $ putStrLn "Could not solve:"
