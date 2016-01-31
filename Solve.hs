@@ -48,26 +48,19 @@ solveSingleCandidate board (((row,col),Just c):cs)  = case c of
 
 -- Solves single positions (only one cell where a value is possible)
 solveSinglePosition :: Board -> [Candidate] -> Board
-solveSinglePosition board cs =
-    let board' = foldl checkSingle board $ map row [0..8]
-        board'' = foldl checkSingle board' $ map col [0..8]
-    in foldl checkSingle board'' $ map box [0..8]
+solveSinglePosition b cs =
+    let b' = foldl checkSingle b $ map (candRow $ getCandidates b) [0..8]
+        b'' = foldl checkSingle b' $ map (candCol $ getCandidates b') [0..8]
+    in foldl checkSingle b'' $ map (candBox $ getCandidates b'') [0..8]
   where
-    row y = filter ((== y) . fst . fst) cs
-    col x = filter ((== x) . snd . fst) cs
-    box i = filter (isBox i . fst) cs
-    isBox i yx = yx `elem` [ (y,x) | y <- take 3 $ [(i `div` 3) * 3 ..]
-                                   , x <- take 3 $ [(i `mod` 3) * 3 ..] ]
-
     checkSingle board cs = checkSingle' board cs 8
     checkSingle' :: Board -> [Candidate] -> Int -> Board
-    checkSingle' board cs i | i < 0     = board
-                            | otherwise = 
+    checkSingle' board cs i =
         let board' = case filter (== i) (onlyCandidates cs) of
                 [c] -> let ((y,x),_) = head $ dropWhile (maybe True (notElem c) . snd) cs
                        in setCell board y x c
                 _   -> board
-        in checkSingle' board' cs (i-1)
+        in if i == 0 then board' else checkSingle' board' cs (i-1)
 
 -- Naked pairs can be used to remove other candidates. As such, it does not
 -- alter the board, but rather the list of candidates.
@@ -75,17 +68,26 @@ solveNakedPair :: [Candidate] -> [Candidate]
 solveNakedPair cs = foldl checkPair cs allPairs
   where
     allPairs = [ (y,x) | y <- [0..8], x <- [0..8] ]
-    row y = filter ((== y) . fst . fst) cs
-    col x = filter ((== x) . snd . fst) cs
-
     checkPair :: [Candidate] -> (Int, Int) -> [Candidate]
-    checkPair = undefined
+    checkPair cands (y,x) = undefined
+--        let cands' = checkPair' cands (y,x) $ map row
 
 -- Solve by trial and error
 solveTrialError :: Board -> [Candidate] -> Board
 solveTrialError board cs = solve' board $ filter (isJust . snd) cs
   where
-    solve' board (((y,x),cands):cs) = undefined
+    solve' board []                 = board
+    solve' board (((y,x),cands):cs) = case cands of
+        Nothing          -> solve' board cs
+        Just []          -> board -- errorEmptyCandidate y x
+        Just (cand:more) ->
+            let board' = setCell board y x cand
+                board'' = solveTrialError board' $ getCandidates board'
+            in case isValid board'' of
+                True  -> board''
+                False -> if null more
+                         then board
+                         else solve' board (((x,y),Just more):cs)
 
 -- Convenience function for whenever a candidate list is empty, which
 -- should be an impossible state

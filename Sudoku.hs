@@ -144,12 +144,33 @@ getCandidate board rx cx
 onlyCandidates :: [Candidate] -> [Int]
 onlyCandidates = concat . catMaybes . map snd
 
--- Useful for removing some candidates somewhere
+-- Useful for doing something with the candidate list under some
+-- circumstances.
 mapCandidatesGuard :: ((Int,Int) -> Bool) -> ([Int] -> [Int]) -> [Candidate] -> [Candidate]
 mapCandidatesGuard _ _ [] = []
 mapCandidatesGuard guard f ((coord,cands):cs) = (coord,cands') : mapCandidatesGuard guard f cs
   where
     cands' = if guard coord then fmap f cands else cands
 
+-- Will map a function to ALL candidates
 mapCandidates :: ([Int] -> [Int]) -> [Candidate] -> [Candidate]
 mapCandidates f cs = mapCandidatesGuard (const True) f cs
+
+-- Just get the candidates where the guard is true.
+filterCandidates :: ((Int,Int) -> Bool) -> [Candidate] -> [Candidate]
+filterCandidates guard candidates = filter (guard . fst) candidates
+
+-- Get all candidates for one row
+candRow :: [Candidate] -> Int -> [Candidate]
+candRow cs y = filterCandidates ((==y) . fst) cs
+
+-- Get all candidates for one column
+candCol :: [Candidate] -> Int -> [Candidate]
+candCol cs x = filterCandidates ((==x) . snd) cs
+
+-- Get all candidates for one box
+candBox :: [Candidate] -> Int -> [Candidate]
+candBox cs i = filterCandidates (isBox i) cs
+  where
+    isBox i yx = yx `elem` [ (y,x) | y <- take 3 $ [(i `div` 3) * 3 ..]
+                                   , x <- take 3 $ [(i `mod` 3) * 3 ..] ]
